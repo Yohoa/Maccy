@@ -8,7 +8,7 @@ import SwiftUI
 class AppState: Sendable {
   static let shared = AppState(history: History.shared, footer: Footer())
 
-  let multiSelectionEnabled = false
+  let multiSelectionEnabled = true
 
   var appDelegate: AppDelegate?
   var popup: Popup
@@ -62,6 +62,7 @@ class AppState: Sendable {
       if navigator.isMultiSelectInProgress {
         navigator.isManualMultiSelect = false
         history.startPasteStack(selection: &navigator.selection, flags: modifierFlags)
+        navigator.collapseSelectionToFirstItem()
       } else {
         history.select(navigator.selection.first, flags: modifierFlags)
       }
