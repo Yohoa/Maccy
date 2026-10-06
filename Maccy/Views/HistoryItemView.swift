@@ -31,10 +31,17 @@ struct HistoryItemView: View {
   }
 
   private func performSelect() {
-    if NSEvent.modifierFlags.contains(.command) && appState.multiSelectionEnabled {
+    let flags = NSEvent.ModifierFlags.currentModifierFlags
+
+    if appState.multiSelectionEnabled && flags.contains(.shift) {
+      if let anchor = appState.navigator.leadHistoryItem {
+        appState.navigator.extendSelection(from: anchor, to: item, isRange: true)
+      } else {
+        appState.navigator.select(item: item)
+      }
+    } else if appState.multiSelectionEnabled && flags.contains(.command) {
       appState.navigator.addToSelection(item: item)
     } else {
-      let flags = NSEvent.ModifierFlags.currentModifierFlags
       Task {
         appState.history.select(item, flags: flags)
       }

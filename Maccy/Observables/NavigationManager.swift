@@ -91,6 +91,14 @@ class NavigationManager { // swiftlint:disable:this type_body_length
     scrollTarget = id
   }
 
+  private func normalizedSelection(_ selection: Selection<HistoryItemDecorator>) -> Selection<HistoryItemDecorator> {
+    guard !selection.isEmpty else { return .init() }
+
+    let selectedIDs = Set(selection.items.map(\.id))
+    let ordered = history.items.filter { selectedIDs.contains($0.id) }
+    return Selection(items: Array(ordered))
+  }
+
   func select(id: UUID) {
     if let item = history.items.first(where: { $0.id == id }) {
       select(item: item, footerItem: nil)
@@ -122,7 +130,7 @@ class NavigationManager { // swiftlint:disable:this type_body_length
     }
 
     withTransaction(Transaction()) {
-      selection = newSelectionState
+      selection = normalizedSelection(newSelectionState)
       leadHistoryItem = item
       scrollTarget = leadSelection
     }
@@ -152,9 +160,23 @@ class NavigationManager { // swiftlint:disable:this type_body_length
     }
 
     withTransaction(Transaction()) {
-      selection = newSelectionState
+      selection = normalizedSelection(newSelectionState)
       leadHistoryItem = toItem
       scrollTarget = leadSelection
+    }
+  }
+
+  func collapseSelectionToFirstItem() {
+    isManualMultiSelect = false
+    guard let firstItem = selection.first else {
+      leadHistoryItem = nil
+      return
+    }
+
+    withTransaction(Transaction()) {
+      selection = .init(items: [firstItem])
+      leadHistoryItem = firstItem
+      scrollTarget = firstItem.id
     }
   }
 
